@@ -3,20 +3,22 @@ option go_package = "./";
 
 package BBC;
 
-// The greeting service definition.
-service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
-  // Sends another greeting
-  rpc SayHelloAgain (HelloRequest) returns (HelloReply) {}
+service Bulletin {
+  rpc Post (Content) returns (PostResult) {}
+  rpc Read (Empty) returns (ReadResult) {}
 }
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
-}
+message Empty {}
 
-// The response message containing the greetings
-message HelloReply {
+message Content {
   string message = 1;
+}
+
+message PostResult {
+  string message = 1;
+}
+
+message ReadResult {
+  string message = 1;
+  repeated uint32 data = 2;
 }

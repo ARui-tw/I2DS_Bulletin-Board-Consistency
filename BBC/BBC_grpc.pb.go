@@ -18,126 +18,124 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// GreeterClient is the client API for Greeter service.
+// BulletinClient is the client API for Bulletin service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GreeterClient interface {
+type BulletinClient interface {
 	// Sends a greeting
-	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
-	// Sends another greeting
-	SayHelloAgain(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
+	Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*PostResult, error)
+	Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error)
 }
 
-type greeterClient struct {
+type bulletinClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGreeterClient(cc grpc.ClientConnInterface) GreeterClient {
-	return &greeterClient{cc}
+func NewBulletinClient(cc grpc.ClientConnInterface) BulletinClient {
+	return &bulletinClient{cc}
 }
 
-func (c *greeterClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
-	out := new(HelloReply)
-	err := c.cc.Invoke(ctx, "/BBC.Greeter/SayHello", in, out, opts...)
+func (c *bulletinClient) Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*PostResult, error) {
+	out := new(PostResult)
+	err := c.cc.Invoke(ctx, "/BBC.Bulletin/Post", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *greeterClient) SayHelloAgain(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
-	out := new(HelloReply)
-	err := c.cc.Invoke(ctx, "/BBC.Greeter/SayHelloAgain", in, out, opts...)
+func (c *bulletinClient) Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error) {
+	out := new(ReadResult)
+	err := c.cc.Invoke(ctx, "/BBC.Bulletin/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GreeterServer is the server API for Greeter service.
-// All implementations must embed UnimplementedGreeterServer
+// BulletinServer is the server API for Bulletin service.
+// All implementations must embed UnimplementedBulletinServer
 // for forward compatibility
-type GreeterServer interface {
+type BulletinServer interface {
 	// Sends a greeting
-	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
-	// Sends another greeting
-	SayHelloAgain(context.Context, *HelloRequest) (*HelloReply, error)
-	mustEmbedUnimplementedGreeterServer()
+	Post(context.Context, *Content) (*PostResult, error)
+	Read(context.Context, *Empty) (*ReadResult, error)
+	mustEmbedUnimplementedBulletinServer()
 }
 
-// UnimplementedGreeterServer must be embedded to have forward compatible implementations.
-type UnimplementedGreeterServer struct {
+// UnimplementedBulletinServer must be embedded to have forward compatible implementations.
+type UnimplementedBulletinServer struct {
 }
 
-func (UnimplementedGreeterServer) SayHello(context.Context, *HelloRequest) (*HelloReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
+func (UnimplementedBulletinServer) Post(context.Context, *Content) (*PostResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Post not implemented")
 }
-func (UnimplementedGreeterServer) SayHelloAgain(context.Context, *HelloRequest) (*HelloReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayHelloAgain not implemented")
+func (UnimplementedBulletinServer) Read(context.Context, *Empty) (*ReadResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
 }
-func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
+func (UnimplementedBulletinServer) mustEmbedUnimplementedBulletinServer() {}
 
-// UnsafeGreeterServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GreeterServer will
+// UnsafeBulletinServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BulletinServer will
 // result in compilation errors.
-type UnsafeGreeterServer interface {
-	mustEmbedUnimplementedGreeterServer()
+type UnsafeBulletinServer interface {
+	mustEmbedUnimplementedBulletinServer()
 }
 
-func RegisterGreeterServer(s grpc.ServiceRegistrar, srv GreeterServer) {
-	s.RegisterService(&Greeter_ServiceDesc, srv)
+func RegisterBulletinServer(s grpc.ServiceRegistrar, srv BulletinServer) {
+	s.RegisterService(&Bulletin_ServiceDesc, srv)
 }
 
-func _Greeter_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+func _Bulletin_Post_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Content)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GreeterServer).SayHello(ctx, in)
+		return srv.(BulletinServer).Post(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BBC.Greeter/SayHello",
+		FullMethod: "/BBC.Bulletin/Post",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServer).SayHello(ctx, req.(*HelloRequest))
+		return srv.(BulletinServer).Post(ctx, req.(*Content))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Greeter_SayHelloAgain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+func _Bulletin_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GreeterServer).SayHelloAgain(ctx, in)
+		return srv.(BulletinServer).Read(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BBC.Greeter/SayHelloAgain",
+		FullMethod: "/BBC.Bulletin/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServer).SayHelloAgain(ctx, req.(*HelloRequest))
+		return srv.(BulletinServer).Read(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Greeter_ServiceDesc is the grpc.ServiceDesc for Greeter service.
+// Bulletin_ServiceDesc is the grpc.ServiceDesc for Bulletin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Greeter_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "BBC.Greeter",
-	HandlerType: (*GreeterServer)(nil),
+var Bulletin_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "BBC.Bulletin",
+	HandlerType: (*BulletinServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SayHello",
-			Handler:    _Greeter_SayHello_Handler,
+			MethodName: "Post",
+			Handler:    _Bulletin_Post_Handler,
 		},
 		{
-			MethodName: "SayHelloAgain",
-			Handler:    _Greeter_SayHelloAgain_Handler,
+			MethodName: "Read",
+			Handler:    _Bulletin_Read_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

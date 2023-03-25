@@ -1,28 +1,13 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
-// Package main implements a client for Greeter service.
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
+	"fmt"
+	"io"
 	"log"
+	"os"
 	"time"
 
 	pb "github.com/ARui-tw/I2DS_Bulletin-Board-Consistency/BBC"
@@ -30,37 +15,91 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const (
-	defaultName = "world"
-)
-
 var (
 	addr = flag.String("addr", "localhost:50051", "the address to connect to")
-	name = flag.String("name", defaultName, "Name to greet")
 )
 
-func main() {
-	flag.Parse()
+func SendPost(content string) {
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	c := pb.NewBulletinClient(conn)
 
-	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	r, err := c.Post(ctx, &pb.Content{Message: content})
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Fatalf("could not post: %v", err)
 	}
-	log.Printf("Greeting: %s", r.GetMessage())
+	fmt.Printf("%s\n", r.GetMessage())
+}
 
-	r, err = c.SayHelloAgain(ctx, &pb.HelloRequest{Name: *name})
+func SendRead() {
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Fatalf("did not connect: %v", err)
 	}
-	log.Printf("Greeting: %s", r.GetMessage())
+	defer conn.Close()
+	c := pb.NewBulletinClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := c.Read(ctx, &pb.Empty{})
+	if err != nil {
+		log.Fatalf("could not read: %v", err)
+	}
+	fmt.Printf("%s", r.GetMessage())
+}
+
+func PrintMenu() {
+	fmt.Println("\nMenu:")
+	fmt.Println("\t1. Post")
+	fmt.Println("\t2. Read")
+	fmt.Println("\t3. Choose")
+	fmt.Println("\t4. Reply")
+	fmt.Println("\tq. Exit")
+	fmt.Print("> ")
+}
+
+func main() {
+	flag.Parse()
+
+	buf := bufio.NewReader(os.Stdin)
+
+	for {
+		PrintMenu()
+		text, err := buf.ReadString('\n')
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		switch text {
+		case "1\n":
+			fmt.Print("Content: ")
+			content, err := buf.ReadString('\n')
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			SendPost(content)
+		case "2\n":
+			SendRead()
+		case "3\n":
+			fmt.Println("Choose")
+		case "4\n":
+			fmt.Println("Reply")
+		case "q\n":
+			fmt.Println("Exit")
+			return
+		default:
+			fmt.Println("Invalid input")
+		}
+	}
 }

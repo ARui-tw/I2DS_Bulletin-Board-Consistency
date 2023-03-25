@@ -1,22 +1,4 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
-// Package main implements a server for Greeter service.
+// Package main implements a server for Bulletin service.
 package main
 
 import (
@@ -25,10 +7,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 
 	pb "github.com/ARui-tw/I2DS_Bulletin-Board-Consistency/BBC"
 	"google.golang.org/grpc"
-	// pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 var (
@@ -37,17 +19,67 @@ var (
 
 // server is used to implement helloworld.GreeterServer.
 type server struct {
-	pb.UnimplementedGreeterServer
+	pb.UnimplementedBulletinServer
+}
+
+type Node struct {
+	content string
+	ID      uint32
+	parent  *Node
+	child   []*Node
+}
+
+var ID_counter uint32 = 0
+var root *Node
+
+func newPost(content string) *Node {
+	ID_counter++
+	var newNode *Node = &Node{content: content, ID: ID_counter, parent: nil, child: []*Node{}}
+	root.child = append(root.child, newNode)
+	newNode.parent = root
+	return newNode
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
+func (s *server) Post(ctx context.Context, in *pb.Content) (*pb.PostResult, error) {
+	var context string = in.GetMessage()
+	log.Printf("[Post] Received: %v", context)
+
+	newPost(context)
+
+	return &pb.PostResult{Message: "[Success] Post ID: " + strconv.FormatUint(uint64(ID_counter), 10)}, nil
 }
 
-func (s *server) SayHelloAgain(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	return &pb.HelloReply{Message: "Hello again " + in.GetName()}, nil
+func (s *server) Read(ctx context.Context, in *pb.Empty) (*pb.ReadResult, error) {
+	fmt.Println(len(root.child))
+	log.Printf("[Read]")
+
+	var result []string = []string{}
+	var idList []uint32 = []uint32{}
+
+	var queue []*Node = []*Node{root}
+	for len(queue) != 0 {
+		var node *Node = queue[0]
+		queue = queue[1:]
+
+		result = append(result, node.content)
+		idList = append(idList, node.ID)
+
+		for _, child := range node.child {
+			queue = append(queue, child)
+		}
+	}
+	var returnResult string = ""
+
+	result = result[1:]
+
+	for index, content := range result {
+		returnResult += strconv.Itoa(index) + ": " + content
+	}
+
+	fmt.Print(returnResult)
+
+	return &pb.ReadResult{Message: returnResult, Data: idList}, nil
 }
 
 func main() {
@@ -56,8 +88,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	root = &Node{content: "", ID: 0, parent: nil, child: []*Node{}}
+
 	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &server{})
+	pb.RegisterBulletinServer(s, &server{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
