@@ -22,9 +22,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BulletinClient interface {
-	// Sends a greeting
 	Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*PostResult, error)
 	Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error)
+	Choose(ctx context.Context, in *ChooseMessage, opts ...grpc.CallOption) (*PostResult, error)
+	Reply(ctx context.Context, in *ReplyMessage, opts ...grpc.CallOption) (*PostResult, error)
 }
 
 type bulletinClient struct {
@@ -53,13 +54,32 @@ func (c *bulletinClient) Read(ctx context.Context, in *Empty, opts ...grpc.CallO
 	return out, nil
 }
 
+func (c *bulletinClient) Choose(ctx context.Context, in *ChooseMessage, opts ...grpc.CallOption) (*PostResult, error) {
+	out := new(PostResult)
+	err := c.cc.Invoke(ctx, "/BBC.Bulletin/Choose", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bulletinClient) Reply(ctx context.Context, in *ReplyMessage, opts ...grpc.CallOption) (*PostResult, error) {
+	out := new(PostResult)
+	err := c.cc.Invoke(ctx, "/BBC.Bulletin/Reply", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BulletinServer is the server API for Bulletin service.
 // All implementations must embed UnimplementedBulletinServer
 // for forward compatibility
 type BulletinServer interface {
-	// Sends a greeting
 	Post(context.Context, *Content) (*PostResult, error)
 	Read(context.Context, *Empty) (*ReadResult, error)
+	Choose(context.Context, *ChooseMessage) (*PostResult, error)
+	Reply(context.Context, *ReplyMessage) (*PostResult, error)
 	mustEmbedUnimplementedBulletinServer()
 }
 
@@ -72,6 +92,12 @@ func (UnimplementedBulletinServer) Post(context.Context, *Content) (*PostResult,
 }
 func (UnimplementedBulletinServer) Read(context.Context, *Empty) (*ReadResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
+}
+func (UnimplementedBulletinServer) Choose(context.Context, *ChooseMessage) (*PostResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Choose not implemented")
+}
+func (UnimplementedBulletinServer) Reply(context.Context, *ReplyMessage) (*PostResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Reply not implemented")
 }
 func (UnimplementedBulletinServer) mustEmbedUnimplementedBulletinServer() {}
 
@@ -122,6 +148,42 @@ func _Bulletin_Read_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Bulletin_Choose_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChooseMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BulletinServer).Choose(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Bulletin/Choose",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BulletinServer).Choose(ctx, req.(*ChooseMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bulletin_Reply_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplyMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BulletinServer).Reply(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Bulletin/Reply",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BulletinServer).Reply(ctx, req.(*ReplyMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Bulletin_ServiceDesc is the grpc.ServiceDesc for Bulletin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -136,6 +198,14 @@ var Bulletin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Read",
 			Handler:    _Bulletin_Read_Handler,
+		},
+		{
+			MethodName: "Choose",
+			Handler:    _Bulletin_Choose_Handler,
+		},
+		{
+			MethodName: "Reply",
+			Handler:    _Bulletin_Reply_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

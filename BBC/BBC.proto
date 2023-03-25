@@ -6,12 +6,23 @@ package BBC;
 service Bulletin {
   rpc Post (Content) returns (PostResult) {}
   rpc Read (Empty) returns (ReadResult) {}
+  rpc Choose (ChooseMessage) returns (PostResult) {}
+  rpc Reply (ReplyMessage) returns (PostResult) {}
 }
 
 message Empty {}
 
 message Content {
   string message = 1;
+}
+
+message ReplyMessage {
+  string message = 1;
+  uint32 NodeID = 2;
+}
+
+message ChooseMessage {
+  uint32 NodeID = 2;
 }
 
 message PostResult {
