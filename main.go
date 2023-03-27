@@ -22,6 +22,8 @@ type Config struct {
 	Type    string `json:"type"`
 	Primary int    `json:"primary"`
 	Child   []int  `json:"child"`
+	NR      int    `json:"NR"`
+	NW      int    `json:"NW"`
 }
 
 func main() {
@@ -92,6 +94,10 @@ func main() {
 			time.Sleep(1 * time.Second)
 		}
 	} else if config.Type == "quorum" {
+		if config.NR+config.NW <= len(config.Child)+1 || config.NW <= (len(config.Child)+1)/2 {
+			log.Fatal("Invalid config")
+		}
+
 		// start coordinator server
 		cmd := exec.Command("go", "run", "BBC_coordinator_server/main.go", "-config_file", *config_file, "-port", strconv.Itoa(config.Primary))
 		cmdReader, _ := cmd.StderrPipe()
@@ -140,6 +146,8 @@ func main() {
 
 			time.Sleep(1 * time.Second)
 		}
+	} else {
+		log.Fatal("Invalid config type")
 	}
 
 	log.Info("All servers started")

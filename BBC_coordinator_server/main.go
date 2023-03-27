@@ -25,7 +25,6 @@ type Config struct {
 	Child   []int  `json:"child"`
 	NR      int    `json:"NR"`
 	NW      int    `json:"NW"`
-	N       int    `json:"N"`
 }
 
 type server struct {
