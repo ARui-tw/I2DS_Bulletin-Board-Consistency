@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -89,7 +91,58 @@ func main() {
 
 			time.Sleep(1 * time.Second)
 		}
+	} else if config.Type == "quorum" {
+		// start coordinator server
+		cmd := exec.Command("go", "run", "BBC_coordinator_server/main.go", "-config_file", *config_file, "-port", strconv.Itoa(config.Primary))
+		cmdReader, _ := cmd.StderrPipe()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+			return
+		}
+
+		scanner := bufio.NewScanner(cmdReader)
+		go func() {
+			for scanner.Scan() {
+				fmt.Printf("\t > %s\n", scanner.Text())
+			}
+		}()
+
+		cmd.Start()
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
+			return
+		}
+		time.Sleep(1 * time.Second)
+
+		// start child server
+		for _, child := range config.Child {
+			cmd := exec.Command("go", "run", "BBC_quorum_server/main.go", "-addr", fmt.Sprintf("localhost:%d", config.Primary), "-port", strconv.Itoa(child))
+			cmdReader, _ := cmd.StderrPipe()
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+				return
+			}
+
+			scanner := bufio.NewScanner(cmdReader)
+			go func() {
+				for scanner.Scan() {
+					fmt.Printf("\t > %s\n", scanner.Text())
+				}
+			}()
+
+			cmd.Start()
+
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
+				return
+			}
+
+			time.Sleep(1 * time.Second)
+		}
 	}
+
+	log.Info("All servers started")
 
 	// sleep forever
 	<-make(chan int)

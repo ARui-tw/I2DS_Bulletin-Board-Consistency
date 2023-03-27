@@ -369,3 +369,463 @@ var Primary_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "BBC/BBC.proto",
 }
+
+// QuorumClient is the client API for Quorum service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type QuorumClient interface {
+	Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*ACK, error)
+	Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error)
+	Choose(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Content, error)
+	Reply(ctx context.Context, in *Node, opts ...grpc.CallOption) (*ACK, error)
+	Update(ctx context.Context, in *Node, opts ...grpc.CallOption) (*ACK, error)
+}
+
+type quorumClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewQuorumClient(cc grpc.ClientConnInterface) QuorumClient {
+	return &quorumClient{cc}
+}
+
+func (c *quorumClient) Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*ACK, error) {
+	out := new(ACK)
+	err := c.cc.Invoke(ctx, "/BBC.Quorum/Post", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumClient) Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error) {
+	out := new(ReadResult)
+	err := c.cc.Invoke(ctx, "/BBC.Quorum/Read", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumClient) Choose(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Content, error) {
+	out := new(Content)
+	err := c.cc.Invoke(ctx, "/BBC.Quorum/Choose", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumClient) Reply(ctx context.Context, in *Node, opts ...grpc.CallOption) (*ACK, error) {
+	out := new(ACK)
+	err := c.cc.Invoke(ctx, "/BBC.Quorum/Reply", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumClient) Update(ctx context.Context, in *Node, opts ...grpc.CallOption) (*ACK, error) {
+	out := new(ACK)
+	err := c.cc.Invoke(ctx, "/BBC.Quorum/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// QuorumServer is the server API for Quorum service.
+// All implementations must embed UnimplementedQuorumServer
+// for forward compatibility
+type QuorumServer interface {
+	Post(context.Context, *Content) (*ACK, error)
+	Read(context.Context, *Empty) (*ReadResult, error)
+	Choose(context.Context, *ID) (*Content, error)
+	Reply(context.Context, *Node) (*ACK, error)
+	Update(context.Context, *Node) (*ACK, error)
+	mustEmbedUnimplementedQuorumServer()
+}
+
+// UnimplementedQuorumServer must be embedded to have forward compatible implementations.
+type UnimplementedQuorumServer struct {
+}
+
+func (UnimplementedQuorumServer) Post(context.Context, *Content) (*ACK, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Post not implemented")
+}
+func (UnimplementedQuorumServer) Read(context.Context, *Empty) (*ReadResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
+}
+func (UnimplementedQuorumServer) Choose(context.Context, *ID) (*Content, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Choose not implemented")
+}
+func (UnimplementedQuorumServer) Reply(context.Context, *Node) (*ACK, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Reply not implemented")
+}
+func (UnimplementedQuorumServer) Update(context.Context, *Node) (*ACK, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedQuorumServer) mustEmbedUnimplementedQuorumServer() {}
+
+// UnsafeQuorumServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to QuorumServer will
+// result in compilation errors.
+type UnsafeQuorumServer interface {
+	mustEmbedUnimplementedQuorumServer()
+}
+
+func RegisterQuorumServer(s grpc.ServiceRegistrar, srv QuorumServer) {
+	s.RegisterService(&Quorum_ServiceDesc, srv)
+}
+
+func _Quorum_Post_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Content)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumServer).Post(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Quorum/Post",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumServer).Post(ctx, req.(*Content))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Quorum_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumServer).Read(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Quorum/Read",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumServer).Read(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Quorum_Choose_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumServer).Choose(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Quorum/Choose",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumServer).Choose(ctx, req.(*ID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Quorum_Reply_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Node)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumServer).Reply(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Quorum/Reply",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumServer).Reply(ctx, req.(*Node))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Quorum_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Node)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.Quorum/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumServer).Update(ctx, req.(*Node))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Quorum_ServiceDesc is the grpc.ServiceDesc for Quorum service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Quorum_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "BBC.Quorum",
+	HandlerType: (*QuorumServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Post",
+			Handler:    _Quorum_Post_Handler,
+		},
+		{
+			MethodName: "Read",
+			Handler:    _Quorum_Read_Handler,
+		},
+		{
+			MethodName: "Choose",
+			Handler:    _Quorum_Choose_Handler,
+		},
+		{
+			MethodName: "Reply",
+			Handler:    _Quorum_Reply_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Quorum_Update_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "BBC/BBC.proto",
+}
+
+// QuorumCoordinatorClient is the client API for QuorumCoordinator service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type QuorumCoordinatorClient interface {
+	Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*ACK, error)
+	Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error)
+	Choose(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Content, error)
+	Reply(ctx context.Context, in *Node, opts ...grpc.CallOption) (*ACK, error)
+	Synch(ctx context.Context, in *IDs, opts ...grpc.CallOption) (*Nodes, error)
+}
+
+type quorumCoordinatorClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewQuorumCoordinatorClient(cc grpc.ClientConnInterface) QuorumCoordinatorClient {
+	return &quorumCoordinatorClient{cc}
+}
+
+func (c *quorumCoordinatorClient) Post(ctx context.Context, in *Content, opts ...grpc.CallOption) (*ACK, error) {
+	out := new(ACK)
+	err := c.cc.Invoke(ctx, "/BBC.QuorumCoordinator/Post", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumCoordinatorClient) Read(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ReadResult, error) {
+	out := new(ReadResult)
+	err := c.cc.Invoke(ctx, "/BBC.QuorumCoordinator/Read", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumCoordinatorClient) Choose(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Content, error) {
+	out := new(Content)
+	err := c.cc.Invoke(ctx, "/BBC.QuorumCoordinator/Choose", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumCoordinatorClient) Reply(ctx context.Context, in *Node, opts ...grpc.CallOption) (*ACK, error) {
+	out := new(ACK)
+	err := c.cc.Invoke(ctx, "/BBC.QuorumCoordinator/Reply", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quorumCoordinatorClient) Synch(ctx context.Context, in *IDs, opts ...grpc.CallOption) (*Nodes, error) {
+	out := new(Nodes)
+	err := c.cc.Invoke(ctx, "/BBC.QuorumCoordinator/Synch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// QuorumCoordinatorServer is the server API for QuorumCoordinator service.
+// All implementations must embed UnimplementedQuorumCoordinatorServer
+// for forward compatibility
+type QuorumCoordinatorServer interface {
+	Post(context.Context, *Content) (*ACK, error)
+	Read(context.Context, *Empty) (*ReadResult, error)
+	Choose(context.Context, *ID) (*Content, error)
+	Reply(context.Context, *Node) (*ACK, error)
+	Synch(context.Context, *IDs) (*Nodes, error)
+	mustEmbedUnimplementedQuorumCoordinatorServer()
+}
+
+// UnimplementedQuorumCoordinatorServer must be embedded to have forward compatible implementations.
+type UnimplementedQuorumCoordinatorServer struct {
+}
+
+func (UnimplementedQuorumCoordinatorServer) Post(context.Context, *Content) (*ACK, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Post not implemented")
+}
+func (UnimplementedQuorumCoordinatorServer) Read(context.Context, *Empty) (*ReadResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
+}
+func (UnimplementedQuorumCoordinatorServer) Choose(context.Context, *ID) (*Content, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Choose not implemented")
+}
+func (UnimplementedQuorumCoordinatorServer) Reply(context.Context, *Node) (*ACK, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Reply not implemented")
+}
+func (UnimplementedQuorumCoordinatorServer) Synch(context.Context, *IDs) (*Nodes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Synch not implemented")
+}
+func (UnimplementedQuorumCoordinatorServer) mustEmbedUnimplementedQuorumCoordinatorServer() {}
+
+// UnsafeQuorumCoordinatorServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to QuorumCoordinatorServer will
+// result in compilation errors.
+type UnsafeQuorumCoordinatorServer interface {
+	mustEmbedUnimplementedQuorumCoordinatorServer()
+}
+
+func RegisterQuorumCoordinatorServer(s grpc.ServiceRegistrar, srv QuorumCoordinatorServer) {
+	s.RegisterService(&QuorumCoordinator_ServiceDesc, srv)
+}
+
+func _QuorumCoordinator_Post_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Content)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumCoordinatorServer).Post(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.QuorumCoordinator/Post",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumCoordinatorServer).Post(ctx, req.(*Content))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuorumCoordinator_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumCoordinatorServer).Read(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.QuorumCoordinator/Read",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumCoordinatorServer).Read(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuorumCoordinator_Choose_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumCoordinatorServer).Choose(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.QuorumCoordinator/Choose",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumCoordinatorServer).Choose(ctx, req.(*ID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuorumCoordinator_Reply_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Node)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumCoordinatorServer).Reply(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.QuorumCoordinator/Reply",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumCoordinatorServer).Reply(ctx, req.(*Node))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuorumCoordinator_Synch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IDs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuorumCoordinatorServer).Synch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BBC.QuorumCoordinator/Synch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuorumCoordinatorServer).Synch(ctx, req.(*IDs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// QuorumCoordinator_ServiceDesc is the grpc.ServiceDesc for QuorumCoordinator service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var QuorumCoordinator_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "BBC.QuorumCoordinator",
+	HandlerType: (*QuorumCoordinatorServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Post",
+			Handler:    _QuorumCoordinator_Post_Handler,
+		},
+		{
+			MethodName: "Read",
+			Handler:    _QuorumCoordinator_Read_Handler,
+		},
+		{
+			MethodName: "Choose",
+			Handler:    _QuorumCoordinator_Choose_Handler,
+		},
+		{
+			MethodName: "Reply",
+			Handler:    _QuorumCoordinator_Reply_Handler,
+		},
+		{
+			MethodName: "Synch",
+			Handler:    _QuorumCoordinator_Synch_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "BBC/BBC.proto",
+}

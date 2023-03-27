@@ -31,6 +31,8 @@ type Config struct {
 	Child   []int  `json:"child"`
 }
 
+var Type string
+
 func SendPost(fileName string) {
 	// read file
 	file, err := os.ReadFile(fileName)
@@ -47,19 +49,38 @@ func SendPost(fileName string) {
 		log.Error("did not connect: ", err)
 	}
 	defer conn.Close()
-	c := pb.NewBulletinClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.Post(ctx, &pb.Content{Message: content})
-	if err != nil {
-		log.Error("could not post: ", err)
-	}
+	if Type == "PBP" {
 
-	if r.GetSuccess() {
-		fmt.Println("Post successfully!")
-	} else {
-		fmt.Println("Post failed!")
+		c := pb.NewBulletinClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		r, err := c.Post(ctx, &pb.Content{Message: content})
+		if err != nil {
+			log.Error("could not post: ", err)
+		}
+
+		if r.GetSuccess() {
+			fmt.Println("Post successfully!")
+		} else {
+			fmt.Println("Post failed!")
+		}
+	} else if Type == "quorum" {
+		c := pb.NewQuorumClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		r, err := c.Post(ctx, &pb.Content{Message: content})
+		if err != nil {
+			log.Error("could not post: ", err)
+		}
+
+		if r.GetSuccess() {
+			fmt.Println("Post successfully!")
+		} else {
+			fmt.Println("Post failed!")
+		}
 	}
 }
 
@@ -70,53 +91,88 @@ func SendRead() {
 		log.Error("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewBulletinClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.Read(ctx, &pb.Empty{})
-	if err != nil {
-		log.Error("could not read: %v", err)
-	}
+	if Type == "PBP" {
+		c := pb.NewBulletinClient(conn)
 
-	articles := r.GetMessage()
-	a := exec.Command("clear")
-	a.Stdout = os.Stdout
-	a.Run()
-	fmt.Println("\nList of Articles:")
-	fmt.Print("-----------------\n\n")
-	// display 10 articles at a time and wait for user input to continue and flush before displaying the next 10
-	for i := 0; i < len(articles); i++ {
-		fmt.Println(articles[i])
-		if i%10 == 9 {
-			fmt.Print("\nPress Enter to continue...")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		r, err := c.Read(ctx, &pb.Empty{})
+		if err != nil {
+			log.Error("could not read: %v", err)
+		}
 
-			if i != len(articles)-1 {
-				c := exec.Command("clear")
-				c.Stdout = os.Stdout
-				c.Run()
-				fmt.Println("\nList of Articles:")
-				fmt.Printf("-----------------\n\n")
+		articles := r.GetMessage()
+		a := exec.Command("clear")
+		a.Stdout = os.Stdout
+		a.Run()
+		fmt.Println("\nList of Articles:")
+		fmt.Print("-----------------\n\n")
+		// display 10 articles at a time and wait for user input to continue and flush before displaying the next 10
+		for i := 0; i < len(articles); i++ {
+			fmt.Println(articles[i])
+			if i%10 == 9 {
+				fmt.Print("\nPress Enter to continue...")
+				bufio.NewReader(os.Stdin).ReadBytes('\n')
+
+				if i != len(articles)-1 {
+					c := exec.Command("clear")
+					c.Stdout = os.Stdout
+					c.Run()
+					fmt.Println("\nList of Articles:")
+					fmt.Printf("-----------------\n\n")
+				}
 			}
 		}
-	}
 
-	fmt.Print("\nPress Enter to continue...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
-	a = exec.Command("clear")
-	a.Stdout = os.Stdout
-	a.Run()
+		fmt.Print("\nPress Enter to continue...")
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		a = exec.Command("clear")
+		a.Stdout = os.Stdout
+		a.Run()
 
-	idList = append(r.GetData())
+		idList = append(r.GetData())
+	} else if Type == "quorum" {
+		c := pb.NewQuorumClient(conn)
 
-	/*
-		// print idList
-		fmt.Println("ID List:")
-		for i := 0; i < len(idList); i++ {
-			fmt.Println(idList[i])
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		r, err := c.Read(ctx, &pb.Empty{})
+		if err != nil {
+			log.Error("could not read: %v", err)
 		}
-	*/
+
+		articles := r.GetMessage()
+		a := exec.Command("clear")
+		a.Stdout = os.Stdout
+		a.Run()
+		fmt.Println("\nList of Articles:")
+		fmt.Print("-----------------\n\n")
+		// display 10 articles at a time and wait for user input to continue and flush before displaying the next 10
+		for i := 0; i < len(articles); i++ {
+			fmt.Println(articles[i])
+			if i%10 == 9 {
+				fmt.Print("\nPress Enter to continue...")
+				bufio.NewReader(os.Stdin).ReadBytes('\n')
+
+				if i != len(articles)-1 {
+					c := exec.Command("clear")
+					c.Stdout = os.Stdout
+					c.Run()
+					fmt.Println("\nList of Articles:")
+					fmt.Printf("-----------------\n\n")
+				}
+			}
+		}
+
+		fmt.Print("\nPress Enter to continue...")
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		a = exec.Command("clear")
+		a.Stdout = os.Stdout
+		a.Run()
+
+		idList = append(r.GetData())
+	}
 }
 
 func SendChoose(i uint32) {
@@ -126,18 +182,34 @@ func SendChoose(i uint32) {
 		log.Error("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewBulletinClient(conn)
+	if Type == "PBP" {
+		c := pb.NewBulletinClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-	r, err := c.Choose(ctx, &pb.ID{NodeID: idList[i]})
-	if err != nil {
-		log.Error("could not choose: %v", err)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		r, err := c.Choose(ctx, &pb.ID{NodeID: idList[i]})
+		if err != nil {
+			log.Error("could not choose: %v", err)
+		}
+
+		fmt.Println("\nArticle:")
+		fmt.Println("-----------------")
+		fmt.Printf("%s", r.GetMessage())
+	} else if Type == "quorum" {
+		c := pb.NewQuorumClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		r, err := c.Choose(ctx, &pb.ID{NodeID: idList[i]})
+		if err != nil {
+			log.Error("could not choose: %v", err)
+		}
+
+		fmt.Println("\nArticle:")
+		fmt.Println("-----------------")
+		fmt.Printf("%s", r.GetMessage())
 	}
 
-	fmt.Println("\nArticle:")
-	fmt.Println("-----------------")
-	fmt.Printf("%s", r.GetMessage())
 }
 
 func SendReply(fileName string, i uint32) {
@@ -156,20 +228,38 @@ func SendReply(fileName string, i uint32) {
 		log.Error("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewBulletinClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	// create a new client depends on type
+	if Type == "PBP" {
+		c := pb.NewBulletinClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
 
-	r, err := c.Reply(ctx, &pb.Node{Message: content, NodeID: idList[i]})
-	if err != nil {
-		log.Error("could not reply: %v", err)
+		r, err := c.Reply(ctx, &pb.Node{Message: content, NodeID: idList[i]})
+		if err != nil {
+			log.Error("could not reply: %v", err)
+		}
+		if r.GetSuccess() {
+			fmt.Println("Reply successfully!")
+		} else {
+			fmt.Println("Reply failed!")
+		}
+	} else if Type == "quorum" {
+		c := pb.NewQuorumClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		r, err := c.Reply(ctx, &pb.Node{Message: content, NodeID: idList[i]})
+		if err != nil {
+			log.Error("could not reply: %v", err)
+		}
+		if r.GetSuccess() {
+			fmt.Println("Reply successfully!")
+		} else {
+			fmt.Println("Reply failed!")
+		}
 	}
-	if r.GetSuccess() {
-		fmt.Println("Reply successfully!")
-	} else {
-		fmt.Println("Reply failed!")
-	}
+
 }
 
 func PrintMenu() {
@@ -200,6 +290,8 @@ func main() {
 	var config Config
 
 	json.Unmarshal(byteValue, &config)
+
+	Type = config.Type
 
 	addr = fmt.Sprintf("localhost:%d", config.Child[rand.Intn(len(config.Child))])
 
@@ -243,6 +335,11 @@ func main() {
 				break
 			}
 
+			if i >= uint32(len(idList)) || i < 0 {
+				fmt.Println("Invalid ID")
+				break
+			}
+
 			SendChoose(i)
 
 		case "4\n":
@@ -258,6 +355,11 @@ func main() {
 			_, err := fmt.Scanf("%d", &i)
 			if err != nil {
 				log.Error(err)
+				break
+			}
+
+			if i >= uint32(len(idList)) || i < 0 {
+				fmt.Println("Invalid ID")
 				break
 			}
 

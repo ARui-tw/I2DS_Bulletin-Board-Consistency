@@ -16,6 +16,22 @@ service Primary {
   rpc Reply (Node) returns (ID) {}
 }
 
+service Quorum {
+  rpc Post (Content) returns (ACK) {}
+  rpc Read (Empty) returns (ReadResult) {}
+  rpc Choose (ID) returns (Content) {}
+  rpc Reply (Node) returns (ACK) {}
+  rpc Update (Node) returns (ACK) {}
+}
+
+service QuorumCoordinator {
+  rpc Post (Content) returns (ACK) {}
+  rpc Read (Empty) returns (ReadResult) {}
+  rpc Choose (ID) returns (Content) {}
+  rpc Reply (Node) returns (ACK) {}
+  rpc Synch (IDs) returns (Nodes) {}
+}
+
 message Empty {}
 
 message ACK {
@@ -30,6 +46,14 @@ message Node {
   string message = 1;
   uint32 NodeID = 2;
   uint32 ParentID = 3;
+}
+
+message Nodes {
+  repeated Node Nodes = 1;
+}
+
+message IDs {
+  repeated uint32 NodeID = 1;
 }
 
 message ID {

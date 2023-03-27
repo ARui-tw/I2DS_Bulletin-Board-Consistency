@@ -39,23 +39,8 @@ var (
 )
 
 var ID_counter uint32 = 0
-var root *Node
 
-var nodes []*Node = []*Node{}
 var ServerList []string
-
-func newPost(content string) {
-	var newNode *Node = &Node{content: content, ID: ID_counter, parent: root, child: []*Node{}}
-	root.child = append(root.child, newNode)
-	nodes = append(nodes, newNode)
-}
-
-func newReply(content string, parentID uint32) {
-	var parentNode *Node = nodes[parentID]
-	var newNode *Node = &Node{content: content, ID: ID_counter, parent: parentNode, child: []*Node{}}
-	parentNode.child = append(parentNode.child, newNode)
-	nodes = append(nodes, newNode)
-}
 
 func (s *server) Post(ctx context.Context, in *pb.Content) (*pb.ID, error) {
 	var content string = in.GetMessage()
@@ -87,7 +72,6 @@ func (s *server) Post(ctx context.Context, in *pb.Content) (*pb.ID, error) {
 		}
 
 	}
-	// newPost(content)
 
 	return &pb.ID{NodeID: ID_counter}, nil
 }
@@ -124,31 +108,8 @@ func (s *server) Reply(ctx context.Context, in *pb.Node) (*pb.ID, error) {
 
 	}
 
-	// newReply(content, parentID)
-
 	return &pb.ID{NodeID: ID_counter}, nil
 }
-
-// Start the server
-//   - @param port: the port of the server
-//   - @param serverList: the list of the other servers
-// func StartUPServer(port int, serverList []int) {
-// 	ServerList = serverList
-// 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-// 	if err != nil {
-// 		log.Fatalf("failed to listen: %v", err)
-// 	}
-
-// 	root = &Node{content: "", ID: 0, parent: nil, child: []*Node{}}
-// 	nodes = append(nodes, root)
-
-// 	s := grpc.NewServer()
-// 	pb.RegisterPrimaryServer(s, &server{})
-// 	log.Info("Primary server listening at ", lis.Addr())
-// 	if err := s.Serve(lis); err != nil {
-// 		log.Fatalf("failed to serve: ", err)
-// 	}
-// }
 
 func main() {
 	flag.Parse()
@@ -175,9 +136,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
-	root = &Node{content: "", ID: 0, parent: nil, child: []*Node{}}
-	nodes = append(nodes, root)
 
 	s := grpc.NewServer()
 	pb.RegisterPrimaryServer(s, &server{})
