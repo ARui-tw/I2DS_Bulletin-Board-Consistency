@@ -117,16 +117,14 @@ func (s *server) Read(ctx context.Context, in *pb.Empty) (*pb.ReadResult, error)
 
 	DFS(root, 0)
 
-	var returnResult string = ""
-
 	result = result[1:]
 	idList = idList[1:]
 
 	for index, content := range result {
-		returnResult += strconv.Itoa(index) + ": " + content + "\n"
+		result[index] = strconv.Itoa(index) + ": " + content
 	}
 
-	return &pb.ReadResult{Message: returnResult, Data: idList}, nil
+	return &pb.ReadResult{Message: result, Data: idList}, nil
 }
 
 func (s *server) Choose(ctx context.Context, in *pb.ID) (*pb.Content, error) {

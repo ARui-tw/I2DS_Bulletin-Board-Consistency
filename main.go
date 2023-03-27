@@ -31,7 +31,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	fmt.Println("Successfully Opened users.json")
+	fmt.Println("Successfully Opened json config")
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -66,7 +66,7 @@ func main() {
 
 		// start child server
 		for _, child := range config.Child {
-			cmd := exec.Command("go", "run", "BBC_server/main.go", "-addr", fmt.Sprintf("localhost:%d", config.Primary), "-port", strconv.Itoa(child))
+			cmd := exec.Command("go", "run", "BBC_child_server/main.go", "-addr", fmt.Sprintf("localhost:%d", config.Primary), "-port", strconv.Itoa(child))
 			cmdReader, _ := cmd.StderrPipe()
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)

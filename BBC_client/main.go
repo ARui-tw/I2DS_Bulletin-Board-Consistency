@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
 	"time"
 
 	pb "github.com/ARui-tw/I2DS_Bulletin-Board-Consistency/BBC"
@@ -78,9 +79,34 @@ func SendRead() {
 		log.Error("could not read: %v", err)
 	}
 
+	articles := r.GetMessage()
+	a := exec.Command("clear")
+	a.Stdout = os.Stdout
+	a.Run()
 	fmt.Println("\nList of Articles:")
-	fmt.Println("-----------------")
-	fmt.Printf("%s", r.GetMessage())
+	fmt.Print("-----------------\n\n")
+	// display 10 articles at a time and wait for user input to continue and flush before displaying the next 10
+	for i := 0; i < len(articles); i++ {
+		fmt.Println(articles[i])
+		if i%10 == 9 {
+			fmt.Print("\nPress Enter to continue...")
+			bufio.NewReader(os.Stdin).ReadBytes('\n')
+
+			if i != len(articles)-1 {
+				c := exec.Command("clear")
+				c.Stdout = os.Stdout
+				c.Run()
+				fmt.Println("\nList of Articles:")
+				fmt.Printf("-----------------\n\n")
+			}
+		}
+	}
+
+	fmt.Print("\nPress Enter to continue...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	a = exec.Command("clear")
+	a.Stdout = os.Stdout
+	a.Run()
 
 	idList = append(r.GetData())
 

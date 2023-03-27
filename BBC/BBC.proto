@@ -37,6 +37,6 @@ message ID {
 }
 
 message ReadResult {
-  string message = 1;
+  repeated string message = 1;
   repeated uint32 data = 2;
 }
