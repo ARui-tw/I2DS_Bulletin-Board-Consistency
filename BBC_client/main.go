@@ -3,40 +3,47 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"log"
+	"io/ioutil"
+	"math/rand"
 	"os"
 	"time"
 
 	pb "github.com/ARui-tw/I2DS_Bulletin-Board-Consistency/BBC"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
-	addr = flag.String("addr", "localhost:50051", "the address to connect to")
+	config_file = flag.String("config_file", "server_config.json", "The server config file")
+	addr        string
+	idList      []uint32 = []uint32{}
 )
 
-var idList []uint32 = []uint32{}
-
-var Error = log.New(os.Stdout, "\u001b[31mERROR: \u001b[0m", log.LstdFlags|log.Lshortfile)
+type Config struct {
+	Type    string `json:"type"`
+	Primary int    `json:"primary"`
+	Child   []int  `json:"child"`
+}
 
 func SendPost(fileName string) {
 	// read file
 	file, err := os.ReadFile(fileName)
 	if err != nil {
-		Error.Println(err)
+		log.Error(err)
 		return
 	}
 
 	content := string(file)
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		Error.Println("did not connect:", err)
+		log.Error("did not connect: ", err)
 	}
 	defer conn.Close()
 	c := pb.NewBulletinClient(conn)
@@ -45,16 +52,21 @@ func SendPost(fileName string) {
 	defer cancel()
 	r, err := c.Post(ctx, &pb.Content{Message: content})
 	if err != nil {
-		log.Fatalf("could not post: %v", err)
+		log.Error("could not post: ", err)
 	}
-	fmt.Printf("%s\n", r.GetMessage())
+
+	if r.GetSuccess() {
+		fmt.Println("Post successfully!")
+	} else {
+		fmt.Println("Post failed!")
+	}
 }
 
 func SendRead() {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Error("did not connect: %v", err)
 	}
 	defer conn.Close()
 	c := pb.NewBulletinClient(conn)
@@ -63,7 +75,7 @@ func SendRead() {
 	defer cancel()
 	r, err := c.Read(ctx, &pb.Empty{})
 	if err != nil {
-		log.Fatalf("could not read: %v", err)
+		log.Error("could not read: %v", err)
 	}
 
 	fmt.Println("\nList of Articles:")
@@ -83,18 +95,18 @@ func SendRead() {
 
 func SendChoose(i uint32) {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Error("did not connect: %v", err)
 	}
 	defer conn.Close()
 	c := pb.NewBulletinClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	r, err := c.Choose(ctx, &pb.ChooseMessage{NodeID: idList[i]})
+	r, err := c.Choose(ctx, &pb.ID{NodeID: idList[i]})
 	if err != nil {
-		log.Fatalf("could not choose: %v", err)
+		log.Error("could not choose: %v", err)
 	}
 
 	fmt.Println("\nArticle:")
@@ -106,16 +118,16 @@ func SendReply(fileName string, i uint32) {
 	// read file
 	file, err := os.ReadFile(fileName)
 	if err != nil {
-		Error.Println(err)
+		log.Error(err)
 		return
 	}
 
 	content := string(file)
-	// Set up a connection to the server.
 
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Error("did not connect: %v", err)
 	}
 	defer conn.Close()
 	c := pb.NewBulletinClient(conn)
@@ -123,11 +135,15 @@ func SendReply(fileName string, i uint32) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.Reply(ctx, &pb.ReplyMessage{Message: content, NodeID: idList[i]})
+	r, err := c.Reply(ctx, &pb.Node{Message: content, NodeID: idList[i]})
 	if err != nil {
-		log.Fatalf("could not reply: %v", err)
+		log.Error("could not reply: %v", err)
 	}
-	fmt.Printf("%s\n", r.GetMessage())
+	if r.GetSuccess() {
+		fmt.Println("Reply successfully!")
+	} else {
+		fmt.Println("Reply failed!")
+	}
 }
 
 func PrintMenu() {
@@ -144,6 +160,25 @@ func PrintMenu() {
 func main() {
 	flag.Parse()
 
+	jsonFile, err := os.Open(*config_file)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("Successfully Opened users.json")
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	var config Config
+
+	json.Unmarshal(byteValue, &config)
+
+	addr = fmt.Sprintf("localhost:%d", config.Child[rand.Intn(len(config.Child))])
+
+	fmt.Printf("Server Address: %s\n", addr)
+
 	buf := bufio.NewReader(os.Stdin)
 
 	for {
@@ -152,7 +187,7 @@ func main() {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 			break
 		}
 
@@ -162,7 +197,7 @@ func main() {
 			fmt.Print("File Name: ")
 			_, err := fmt.Scanf("%s", &content)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 			SendPost(content)
@@ -178,7 +213,7 @@ func main() {
 			fmt.Print("ID: ")
 			_, err := fmt.Scanf("%d", &i)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 
@@ -196,14 +231,14 @@ func main() {
 			fmt.Print("ID: ")
 			_, err := fmt.Scanf("%d", &i)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 
 			fmt.Print("File Name: ")
 			_, err = fmt.Scanf("%s", &content)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 

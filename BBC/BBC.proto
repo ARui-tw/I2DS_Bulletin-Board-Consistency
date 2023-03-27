@@ -4,29 +4,36 @@ option go_package = "./";
 package BBC;
 
 service Bulletin {
-  rpc Post (Content) returns (PostResult) {}
+  rpc Post (Content) returns (ACK) {}
   rpc Read (Empty) returns (ReadResult) {}
-  rpc Choose (ChooseMessage) returns (PostResult) {}
-  rpc Reply (ReplyMessage) returns (PostResult) {}
+  rpc Choose (ID) returns (Content) {}
+  rpc Reply (Node) returns (ACK) {}
+  rpc Update (Node) returns (ACK) {}
+}
+
+service Primary {
+  rpc Post (Content) returns (ID) {}
+  rpc Reply (Node) returns (ID) {}
 }
 
 message Empty {}
+
+message ACK {
+  bool success = 1;
+}
 
 message Content {
   string message = 1;
 }
 
-message ReplyMessage {
+message Node {
   string message = 1;
   uint32 NodeID = 2;
+  uint32 ParentID = 3;
 }
 
-message ChooseMessage {
-  uint32 NodeID = 2;
-}
-
-message PostResult {
-  string message = 1;
+message ID {
+  uint32 NodeID = 1;
 }
 
 message ReadResult {
